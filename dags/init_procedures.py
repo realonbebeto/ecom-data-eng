@@ -67,7 +67,7 @@ def db_setup_dag(dag):
         create_agg_shipments_task = PostgresOperator(
             task_id="create_agg_shipments_task",
             postgres_conn_id="postgres_default",
-            sql="sql/agg_pub_hol.sql",
+            sql="sql/agg_shipments.sql",
         )
 
         create_best_product_task = PostgresOperator(
