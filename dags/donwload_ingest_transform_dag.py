@@ -9,7 +9,6 @@ from airflow.operators.python import PythonOperator
 
 from app.from_s3 import download_files
 from app.to_wh_staging import orders_to_staging, reviews_to_staging, shipments_to_staging
-from app.dim_dates import dimension_dates
 
 
 from app.agg_transformations import agg_public_holiday, agg_shipments, best_performing_product
@@ -27,14 +26,9 @@ default_args = {
     "retries": 1,
 }
 
-
-
 def donwload_parquetize_upload_dag(
     dag,
-    url_template,
-    local_csv_path_template,
-    local_parquet_path_template,
-    gcs_path_template
+    local_csv_path_template
 ):
     with dag:
         s3_download_dataset_task = PythonOperator(
@@ -71,16 +65,6 @@ def donwload_parquetize_upload_dag(
             },
         )
 
-
-        dimension_dates_task = PythonOperator(
-            task_id="dimension_dates_task",
-            python_callable=dimension_dates,
-            op_kwargs={
-                "start_date": START_DATE,
-                "end_date": END_DATE,
-            },
-        )
-
         agg_public_holiday_task = PythonOperator(
             task_id="agg_public_holiday_task",
             python_callable=agg_public_holiday,
@@ -106,7 +90,6 @@ def donwload_parquetize_upload_dag(
 
         s3_download_dataset_task >> [orders_to_staging_task, 
                                      reviews_to_staging_task, 
-                                     shipments_to_staging_task, 
-                                     dimension_dates_task] >> [agg_public_holiday_task,
-                                                               agg_shipments_task,
-                                                               best_performing_product_task] >> rm_csv_task
+                                     shipments_to_staging_task] >> [agg_public_holiday_task,
+                                                                    agg_shipments_task,
+                                                                    best_performing_product_task] >> rm_csv_task
