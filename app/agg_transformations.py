@@ -5,6 +5,9 @@ SCHEMA = "bebeto_analytics"
 
 
 def agg_public_holiday():
+    """
+    A function that queries the db to return a distribution of monthly holiday purchases in a past year.
+    """
 
     query = """
         SELECT CURRENT_DATE AS ingestion_date,
@@ -81,8 +84,9 @@ def agg_public_holiday():
 
 
 def agg_shipments():
-    
-    
+    """
+    A function that queries the db for count of late and undelivered items
+    """  
     query = """
         SELECT CURRENT_DATE AS ingestion_date,
                        COUNT(CASE
@@ -106,6 +110,9 @@ def agg_shipments():
 
 
 def best_performing_product():
+    """
+    A function that queries the db and returns a profile of the product with the highest count of reviews
+    """
     
     query = """
     WITH highest_reviewed_product AS
