@@ -15,8 +15,6 @@ from app.agg_transformations import agg_public_holiday, agg_shipments, best_perf
 
 BUCKET = "d2b-internal-assessment-bucket"
 FILES = ["orders.csv", "reviews.csv", "shipment_deliveries.csv"]
-START_DATE = "2021-01-01"
-END_DATE = "2022-09-06"
 
 
 default_args = {
@@ -26,7 +24,7 @@ default_args = {
     "retries": 1,
 }
 
-def donwload_parquetize_upload_dag(
+def download_ingest_trans_dag(
     dag,
     local_csv_path_template
 ):
@@ -80,12 +78,11 @@ def donwload_parquetize_upload_dag(
         best_performing_product_task = PythonOperator(
             task_id="best_performing_product_task",
             python_callable=best_performing_product,
-
         )
 
         rm_csv_task = BashOperator(
             task_id="rm_csv_task",
-            bash_command=f"rm {local_csv_path_template}"
+            bash_command=f"rm -rf {local_csv_path_template}"
         )
 
         s3_download_dataset_task >> [orders_to_staging_task, 
@@ -93,3 +90,17 @@ def donwload_parquetize_upload_dag(
                                      shipments_to_staging_task] >> [agg_public_holiday_task,
                                                                     agg_shipments_task,
                                                                     best_performing_product_task] >> rm_csv_task
+
+
+ecom_dag = DAG(
+    dag_id="ecom_dag_v1",
+    schedule_interval="0 0 * * *",
+    start_date=days_ago(1),
+    default_args=default_args,
+    catchup=True,
+    max_active_runs=3,
+    tags=['dtc-de'],
+)
+
+
+download_ingest_trans_dag(ecom_dag, "data/*.csv")
