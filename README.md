@@ -58,4 +58,4 @@ docker compose --env-file .env up -d
    
 8. Run init_db_setup_v1 on the airflow UI to create the tables
    
-9.  Activate ecom_dag_v1 on the airflow UI to schedule the pipeline. The schedule interval option is provided in code to customize for needs.
+9.  Activate ecom_dag_v1 on the airflow UI to schedule the pipeline. The schedule interval option is provided in code to customize for needs e.g provision of `0 0 * * *` will run the pipeline every midnight.
