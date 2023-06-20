@@ -1,6 +1,6 @@
-CREATE TABLE IF NOT EXISTS bebeto_analytics.best_performing_product (
+CREATE TABLE IF NOT EXISTS bebenyam5327_analytics.best_performing_product (
     ingestion_date DATE NOT NULL PRIMARY KEY,
-    product_id BIGINT NOT NULL,
+    product_name VARCHAR(255) NOT NULL,
     most_ordered_day DATE NOT NULL,
     is_public_holiday BOOLEAN NOT NULL,
     tt_review_points BIGINT NOT NULL,

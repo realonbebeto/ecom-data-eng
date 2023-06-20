@@ -1,7 +1,14 @@
+"""
+I had built this script to simulate the dim_dates
+"""
+
+
 import pandas as pd
 import holidays
-from app.db_config import ENGINE
 from datetime import timedelta, datetime
+from db_config import return_engine
+
+ENGINE = return_engine("main_db")
 
 # Used to choose Holland holidays
 nl_holidays = holidays.country_holidays('NL')

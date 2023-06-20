@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS bebeto_staging.orders (
+CREATE TABLE IF NOT EXISTS bebenyam5327_staging.orders (
     order_id BIGINT NOT NULL PRIMARY KEY,
     customer_id BIGINT NOT NULL,
     order_date DATE NOT NULL,

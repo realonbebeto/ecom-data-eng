@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS bebeto_analytics.agg_public_holiday (
+CREATE TABLE IF NOT EXISTS bebenyam5327_analytics.agg_public_holiday (
     ingestion_date DATE NOT NULL PRIMARY KEY,
     tt_order_hol_jan BIGINT NOT NULL,
     tt_order_hol_feb BIGINT NOT NULL,

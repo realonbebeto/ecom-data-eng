@@ -1,7 +1,9 @@
-from app.db_config import ENGINE
 import pandas as pd
+from db_config import return_engine
 
-SCHEMA = "bebeto_analytics"
+ENGINE = return_engine("main_db")
+
+SCHEMA = "bebenyam5327_analytics"
 
 
 def agg_public_holiday():
@@ -62,14 +64,14 @@ def agg_public_holiday():
         FROM
         ( SELECT dt.month_of_the_year_num,
                 COUNT(o.order_id) AS order_count
-        FROM bebeto_staging."orders" o
+        FROM bebenyam5327_staging."orders" o
         INNER JOIN if_common."dim_dates" dt ON dt.calendar_dt = o.order_date
         WHERE dt.day_of_the_week_num IN (1,
                                             2,
                                             3,
                                             4,
                                             5)
-            AND dt.working_day = TRUE
+            AND dt.working_day = FALSE
             AND DATE_TRUNC('year', o.order_date) = DATE_TRUNC('year', date '2022-09-05') - INTERVAL '1 year'
         GROUP BY dt.month_of_the_year_num
         ORDER BY 1 ASC ) v
@@ -80,7 +82,7 @@ def agg_public_holiday():
     read_data = part_data.fetchall()
     col_names = part_data.keys()
     df = pd.DataFrame(read_data, columns=col_names)
-    df.to_sql(name="agg_public_holiday", schema=SCHEMA, con=ENGINE, if_exists="append", index_label="ingestion_date")
+    df.to_sql(name="agg_public_holiday", schema=SCHEMA, con=ENGINE, if_exists="append", index=False, index_label="ingestion_date")
 
 
 def agg_shipments():
@@ -98,15 +100,15 @@ def agg_shipments():
                                       AND sd.shipment_date IS NULL
                                       AND CURRENT_DATE >= o.order_date + INTERVAL '15 days' THEN 1
                              END) AS tt_undelivered_items
-        FROM bebeto_staging.shipment_deliveries sd
-        LEFT JOIN bebeto_staging.orders o ON o.order_id=sd.order_id;
+        FROM bebenyam5327_staging.shipment_deliveries sd
+        LEFT JOIN bebenyam5327_staging.orders o ON o.order_id=sd.order_id;
     """
 
     part_data = ENGINE.execute(query)
     read_data = part_data.fetchall()
     col_names = part_data.keys()
     df = pd.DataFrame(read_data, columns=col_names)
-    df.to_sql(name="agg_shipments", schema=SCHEMA, con=ENGINE, if_exists="append", index_label="ingestion_date")
+    df.to_sql(name="agg_shipments", schema=SCHEMA, con=ENGINE, if_exists="append", index=False, index_label="ingestion_date")
 
 
 def best_performing_product():
@@ -116,17 +118,18 @@ def best_performing_product():
     
     query = """
     WITH highest_reviewed_product AS
-        (SELECT r.product_id,
+        (SELECT r.product_id, p.product_name,
                 COUNT(r.review) AS total_reviews,
                 SUM(r.review) AS total_review_points
-        FROM bebeto_staging.reviews r
-        GROUP BY 1
+        FROM bebenyam5327_staging.reviews r
+        LEFT JOIN if_common.dim_products p ON p.product_id=r.product_id
+        GROUP BY 1, 2
         ORDER BY total_reviews DESC
         LIMIT 1),
             most_ordered_date AS
         (SELECT o.order_date,
                 COUNT(o.order_id) AS total_orders
-        FROM bebeto_staging.orders o
+        FROM bebenyam5327_staging.orders o
         WHERE o.product_id =
             (SELECT product_id
                 FROM highest_reviewed_product)
@@ -135,7 +138,7 @@ def best_performing_product():
         LIMIT 1),
             public_holiday AS
         (SELECT working_day
-        FROM "if_common.dim_dates"
+        FROM if_common.dim_dates
         WHERE calendar_dt IN
             (SELECT order_date
                 FROM most_ordered_date)
@@ -145,11 +148,11 @@ def best_performing_product():
                 COUNT(*) AS COUNT,
                 COUNT(*) * 100.0 /
             (SELECT COUNT(*)
-            FROM bebeto_staging.reviews
+            FROM bebenyam5327_staging.reviews
             WHERE product_id =
                 (SELECT product_id
                 FROM highest_reviewed_product) ) AS percentage
-        FROM bebeto_staging.reviews
+        FROM bebenyam5327_staging.reviews
         WHERE product_id =
             (SELECT product_id
                 FROM highest_reviewed_product)
@@ -164,26 +167,26 @@ def best_performing_product():
                 COUNT(*) AS COUNT,
                 COUNT(*) * 100.0 /
             (SELECT COUNT(*)
-            FROM bebeto_staging.shipment_deliveries
+            FROM bebenyam5327_staging.shipment_deliveries
             WHERE order_id IN
                 (SELECT order_id
-                FROM bebeto_staging.orders
+                FROM bebenyam5327_staging.orders
                 WHERE product_id =
                     (SELECT product_id
                         FROM highest_reviewed_product) ) ) AS percentage
-        FROM bebeto_staging.shipment_deliveries sd
-        INNER JOIN bebeto_staging.orders o ON o.order_id=sd.order_id
+        FROM bebenyam5327_staging.shipment_deliveries sd
+        INNER JOIN bebenyam5327_staging.orders o ON o.order_id=sd.order_id
         WHERE sd.order_id IN
             (SELECT order_id
-                FROM bebeto_staging.orders o
+                FROM bebenyam5327_staging.orders o
                 WHERE product_id =
                     (SELECT product_id
                     FROM highest_reviewed_product) )
         GROUP BY shipment_type)
     SELECT CURRENT_DATE AS ingestion_date,
 
-        (SELECT product_id
-        FROM highest_reviewed_product) AS product_id,
+        (SELECT product_name
+        FROM highest_reviewed_product) AS product_name,
 
         (SELECT order_date
         FROM most_ordered_date) AS most_ordered_day,
@@ -227,4 +230,4 @@ def best_performing_product():
     read_data = part_data.fetchall()
     col_names = part_data.keys()
     df = pd.DataFrame(read_data, columns=col_names)
-    df.to_sql(name="best_performing_product", schema=SCHEMA, con=ENGINE, if_exists="append", index_label="ingestion_date")
+    df.to_sql(name="best_performing_product", schema=SCHEMA, con=ENGINE, if_exists="append", index=False, index_label="ingestion_date")
