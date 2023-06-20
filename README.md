@@ -33,7 +33,7 @@ git clone git@github.com:realonbebeto/ecom-data-eng.git
 ```
 cd airflow
 ```
-3. Create an .env file with the following environment parameters for accesing the db and volume setup:
+3. Create an .env file with the following environment parameters for accesing the airflow db for logging and volume setup:
 * DB_USERNAME=real_value
 * DB_PASSWORD=real_calue
 * DB_HOST=real_value
