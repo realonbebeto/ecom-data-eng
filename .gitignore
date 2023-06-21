@@ -2,5 +2,7 @@
 .env
 .venv
 logs
+*.hcl
+.terraform/
 
 __pycache__
