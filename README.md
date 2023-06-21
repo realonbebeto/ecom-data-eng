@@ -54,8 +54,10 @@ docker compose --env-file .env up airflow-init
 ```
 docker compose --env-file .env up -d
 ```
-7. Log on to `localhost:8000` with airflow as both the username and password. 
+7. Log on to `localhost:8000` with airflow as both the username and password.
    
-8. Run init_db_setup_v1 on the airflow UI to create the tables
+8. On the Admin -> Connections tab add the database connection credentials to the warehouse providing main_db as the Conn Id
    
-9.  Activate ecom_dag_v1 on the airflow UI to schedule the pipeline. The schedule interval option is provided in code to customize for needs e.g provision of `0 0 * * *` will run the pipeline every midnight.
+9.  Run init_db_setup_v1 on the airflow UI to create the tables
+   
+10. Activate ecom_dag_v1 on the airflow UI to schedule the pipeline. The schedule interval option is provided in code to customize for needs e.g provision of `0 0 * * *` will run the pipeline every midnight.
