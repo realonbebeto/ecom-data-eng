@@ -7,6 +7,9 @@ import os
 DIR = os.getcwd()
 
 def download_files(bucket_name:str, files: List[str]):
+    """
+    A function that takes in bucket name and files and downloads the files from s3
+    """
     s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))
     for file in files:
         TO_FILE = os.path.join(DIR, f"tmp_data/{file}")

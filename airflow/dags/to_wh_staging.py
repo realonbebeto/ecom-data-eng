@@ -5,6 +5,11 @@ from db_config import return_engine
 ENGINE = return_engine("main_db")
 DIR  = os.getcwd()
 
+
+"""
+Functions that read downloaded files and ingests them to specific tables
+"""
+
 def orders_to_staging():
     df = pd.read_csv(os.path.join(DIR, "tmp_data/orders.csv"))
     df = df.rename(columns={"total_price": "amount"})
